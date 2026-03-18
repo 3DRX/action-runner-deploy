@@ -1,0 +1,10 @@
+table ip docker_redsocks {
+  chain prerouting {
+    type nat hook prerouting priority dstnat; policy accept;
+
+    ip saddr != 172.17.0.0/16 return
+    ip daddr { 10.0.0.0/8, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 240.0.0.0/4 } return
+
+    tcp dport { 80, 443 } counter redirect to :12345
+  }
+}

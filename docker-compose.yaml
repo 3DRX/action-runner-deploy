@@ -1,0 +1,65 @@
+services:
+  redsocks:
+    build:
+      context: ./redsocks
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
+        http_proxy: ${HTTP_PROXY}
+        https_proxy: ${HTTPS_PROXY}
+        no_proxy: ${NO_PROXY}
+    network_mode: host
+    restart: always
+    command: ["redsocks", "-c", "/etc/redsocks/redsocks.conf"]
+
+  redsocks_rules:
+    build:
+      context: ./redsocks
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
+        http_proxy: ${HTTP_PROXY}
+        https_proxy: ${HTTPS_PROXY}
+        no_proxy: ${NO_PROXY}
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    restart: always
+    depends_on:
+      - redsocks
+    command:
+      - sh
+      - -ec
+      - |
+        nft list table ip docker_redsocks >/dev/null 2>&1 && nft delete table ip docker_redsocks || true
+        nft -f /etc/redsocks/docker-redsocks.nft
+        exec tail -f /dev/null
+
+  gh_runner:
+    image: myoung34/github-runner:latest
+    environment:
+      RUNNER_SCOPE: org
+      ORG_NAME: spatialwalk
+      RUNNER_NAME_PREFIX: spatialwalk-runner-legion
+      RUNNER_LABELS: self-hosted,linux,x64,org,4060
+      ACCESS_TOKEN: ${ACCESS_TOKEN}
+      DOCKER_IN_DOCKER: "false"
+      DOCKER_CONFIG: /home/runner/.docker
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+      http_proxy: ${HTTP_PROXY}
+      https_proxy: ${HTTPS_PROXY}
+      no_proxy: ${NO_PROXY}
+    security_opt:
+      - label:disable
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/github-runner/buildx-cache:/tmp/.buildx-cache
+    restart: always
+    deploy:
+      replicas: 6
+      restart_policy:
+        condition: any
