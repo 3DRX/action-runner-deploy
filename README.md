@@ -49,13 +49,7 @@ cp .env.example .env
 Standard start:
 
 ```bash
-docker compose up -d --build redsocks redsocks_rules gh_runner
-```
-
-If your Docker Compose client is newer than the host Docker daemon, use the compatibility workaround:
-
-```bash
-DOCKER_API_VERSION=1.41 DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose up -d --build redsocks redsocks_rules gh_runner
+docker compose up -d
 ```
 
 ## Scale runners
@@ -63,7 +57,7 @@ DOCKER_API_VERSION=1.41 DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker comp
 For plain Docker Compose, use `--scale`:
 
 ```bash
-docker compose up -d --scale gh_runner=3
+docker compose up -d
 ```
 
 Note: `deploy.replicas` in `docker-compose.yaml` is only used by Docker Swarm. Plain `docker compose` ignores it.
@@ -80,12 +74,6 @@ Watch runner logs:
 
 ```bash
 docker compose logs -f gh_runner
-```
-
-Test Docker Hub access from a bridge container:
-
-```bash
-docker run --rm curlimages/curl curl -I https://registry-1.docker.io/v2/
 ```
 
 ## Stop the stack
